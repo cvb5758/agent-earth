@@ -187,10 +187,10 @@ function FloatingCard({ wp, index, total, activeAgentId, agentOrder, onAgentChan
         </div>
       )}
 
-      {/* Street View Preview */}
-      {wp.hasStreetView && API_KEY && (
+      {/* Image Preview: local image or Street View */}
+      {(wp.localImage || (wp.hasStreetView && API_KEY)) && (
         <div style={{ position: 'relative', height: isMobile ? '200px' : '260px', overflow: 'hidden' }}>
-          <img src={streetViewUrl(wp, isMobile)} alt={wp.title}
+          <img src={wp.localImage || streetViewUrl(wp, isMobile)} alt={wp.title}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px',
@@ -206,7 +206,7 @@ function FloatingCard({ wp, index, total, activeAgentId, agentOrder, onAgentChan
         </div>
       )}
 
-      {!wp.hasStreetView && (
+      {!wp.localImage && !wp.hasStreetView && (
         <div style={{
           height: isMobile ? '80px' : '120px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',

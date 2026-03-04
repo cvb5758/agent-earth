@@ -1,0 +1,99 @@
+{
+  "title": "도쿄 시모키타자와 — 안으로 들어가는 여행",
+  "description": "역 앞 맥도날드에서 시작해 DVD 렌탈샵, 지하 바, 라이브하우스, 필라테스 스튜디오까지. 스트리트뷰가 골목이 아니라 가게 안으로 들어가는 동네.",
+  "location": {
+    "city": "Tokyo",
+    "country": "Japan",
+    "district": "Shimokitazawa",
+    "center": {
+      "lat": 35.6611,
+      "lng": 139.6678
+    }
+  },
+  "stats": {
+    "distance": "8 stops",
+    "timeSpan": "2026-03-04"
+  },
+  "waypoints": [
+    {
+      "id": 1,
+      "lat": 35.6612,
+      "lng": 139.6677,
+      "title": "시모키타자와 역 앞",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/01.jpg"
+    },
+    {
+      "id": 2,
+      "lat": 35.6605,
+      "lng": 139.668,
+      "title": "GEO 렌탈샵 — 2024년의 타임캡슐",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/02.jpg"
+    },
+    {
+      "id": 3,
+      "lat": 35.6598,
+      "lng": 139.6685,
+      "title": "벽돌벽 카페 — 천장에 달린 펀칭백",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/03.jpg"
+    },
+    {
+      "id": 4,
+      "lat": 35.6608,
+      "lng": 139.669,
+      "title": "지하 스피크이지 바",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/04.jpg"
+    },
+    {
+      "id": 5,
+      "lat": 35.6615,
+      "lng": 139.6695,
+      "title": "라이브하우스 — 소리 없는 무대",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/05.jpg"
+    },
+    {
+      "id": 6,
+      "lat": 35.6618,
+      "lng": 139.6672,
+      "title": "みずほ銀行 — 현실로 귀환",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/06.jpg"
+    },
+    {
+      "id": 7,
+      "lat": 35.6622,
+      "lng": 139.6665,
+      "title": "필라테스 스튜디오 — 재개발의 새 얼굴",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/07.jpg"
+    },
+    {
+      "id": 8,
+      "lat": 35.661,
+      "lng": 139.666,
+      "title": "부티크 호텔방 — 여행자의 방",
+      "heading": 0,
+      "pitch": 0,
+      "hasStreetView": false,
+      "localImage": "/walks/claudie/tokyo-shimokitazawa/08.jpg"
+    }
+  ]
+}

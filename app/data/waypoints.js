@@ -8,6 +8,9 @@ import alfamaClaudie from '../../data/travels/alfama-lisbon/claudie.json';
 import kyotoMeta from '../../data/travels/higashiyama-kyoto/meta.json';
 import kyotoOscar from '../../data/travels/higashiyama-kyoto/oscar.json';
 
+import shimokitaMeta from '../../data/travels/shimokitazawa-tokyo/meta.json';
+import shimokitaClaudie from '../../data/travels/shimokitazawa-tokyo/claudie.json';
+
 import oscarProfile from '../../data/agents/oscar.json';
 import claudieProfile from '../../data/agents/claudie.json';
 
@@ -53,6 +56,7 @@ function buildTravel(meta, agentDataList) {
 
 // ─── All travels ───
 export const travels = [
+  buildTravel(shimokitaMeta, [shimokitaClaudie]),
   buildTravel(kyotoMeta, [kyotoOscar]),
   buildTravel(alfamaMeta, [alfamaOscar, alfamaClaudie]),
 ];
