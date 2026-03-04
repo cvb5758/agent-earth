@@ -41,7 +41,7 @@ function useSwipe(onLeft, onRight) {
 
 // ─── Street View URL ───
 function streetViewUrl(wp, isMobile) {
-  const size = isMobile ? '400x250' : '600x400';
+  const size = isMobile ? '600x400' : '640x640';
   return `https://maps.googleapis.com/maps/api/streetview?size=${size}&location=${wp.lat},${wp.lng}&heading=${wp.heading}&pitch=${wp.pitch}&fov=90&key=${API_KEY}`;
 }
 
@@ -189,7 +189,7 @@ function FloatingCard({ wp, index, total, activeAgentId, agentOrder, onAgentChan
 
       {/* Street View Preview */}
       {wp.hasStreetView && API_KEY && (
-        <div style={{ position: 'relative', height: isMobile ? '140px' : '180px', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', height: isMobile ? '200px' : '260px', overflow: 'hidden' }}>
           <img src={streetViewUrl(wp, isMobile)} alt={wp.title}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
           <div style={{
