@@ -60,11 +60,13 @@ export default function LandingMap({ travels, agents, onSelectTravel, selectedTr
 
     map.on('load', () => {
       addMarkers(map);
+      addConnectionArcs(map);
     });
 
     // Fallback if already loaded
     if (map.loaded && map.loaded()) {
       addMarkers(map);
+      addConnectionArcs(map);
     }
 
     return () => {
@@ -73,6 +75,65 @@ export default function LandingMap({ travels, agents, onSelectTravel, selectedTr
       mapRef.current = null;
     };
   }, [ready]);
+
+  function addConnectionArcs(map) {
+    if (travels.length < 2) return;
+    // Build great-circle arcs between all travel locations
+    const points = travels.map(t => [t.meta.location.center.lng, t.meta.location.center.lat]);
+    const features = [];
+
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const arc = greatCircleArc(points[i], points[j], 60);
+        features.push({
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: arc },
+        });
+      }
+    }
+
+    if (map.getSource('arcs')) return;
+    map.addSource('arcs', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features },
+    });
+    map.addLayer({
+      id: 'arcs',
+      type: 'line',
+      source: 'arcs',
+      paint: {
+        'line-color': '#c9a961',
+        'line-width': 1.2,
+        'line-opacity': 0.25,
+        'line-dasharray': [4, 4],
+      },
+    });
+  }
+
+  // Great circle arc interpolation
+  function greatCircleArc(start, end, numPoints) {
+    const toRad = d => d * Math.PI / 180;
+    const toDeg = r => r * 180 / Math.PI;
+    const [lng1, lat1] = start.map(toRad);
+    const [lng2, lat2] = end.map(toRad);
+
+    const d = 2 * Math.asin(Math.sqrt(
+      Math.pow(Math.sin((lat2 - lat1) / 2), 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin((lng2 - lng1) / 2), 2)
+    ));
+
+    const points = [];
+    for (let i = 0; i <= numPoints; i++) {
+      const f = i / numPoints;
+      const A = Math.sin((1 - f) * d) / Math.sin(d);
+      const B = Math.sin(f * d) / Math.sin(d);
+      const x = A * Math.cos(lat1) * Math.cos(lng1) + B * Math.cos(lat2) * Math.cos(lng2);
+      const y = A * Math.cos(lat1) * Math.sin(lng1) + B * Math.cos(lat2) * Math.sin(lng2);
+      const z = A * Math.sin(lat1) + B * Math.sin(lat2);
+      points.push([toDeg(Math.atan2(y, x)), toDeg(Math.atan2(z, Math.sqrt(x * x + y * y)))]);
+    }
+    return points;
+  }
 
   function addMarkers(map) {
     // Clear existing
@@ -114,8 +175,8 @@ export default function LandingMap({ travels, agents, onSelectTravel, selectedTr
         bounds.extend([t.meta.location.center.lng, t.meta.location.center.lat]);
       });
       map.fitBounds(bounds, {
-        padding: isMobile ? 80 : 120,
-        maxZoom: 5,
+        padding: isMobile ? 60 : 100,
+        maxZoom: 3,
         duration: 0,
       });
     }
@@ -137,8 +198,8 @@ export default function LandingMap({ travels, agents, onSelectTravel, selectedTr
         bounds.extend([t.meta.location.center.lng, t.meta.location.center.lat]);
       });
       mapRef.current.fitBounds(bounds, {
-        padding: isMobile ? 80 : 120,
-        maxZoom: 5,
+        padding: isMobile ? 60 : 100,
+        maxZoom: 3,
         duration: 1200,
       });
     }
