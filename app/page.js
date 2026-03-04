@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { travels, agents } from './data/waypoints';
+import { getTravels } from './data/waypoints';
 import LandingMap from './components/LandingMap';
 import WalkMap from './components/WalkMap';
 
@@ -45,12 +45,7 @@ function streetViewUrl(wp, isMobile) {
   return `https://maps.googleapis.com/maps/api/streetview?size=${size}&location=${wp.lat},${wp.lng}&heading=${wp.heading}&pitch=${wp.pitch}&fov=90&key=${API_KEY}`;
 }
 
-// ─── Global stats ───
-const globalStats = {
-  walks: travels.length,
-  cities: new Set(travels.map(t => t.meta.location.city)).size,
-  walkers: new Set(travels.flatMap(t => t.agentOrder)).size,
-};
+// (globalStats computed dynamically inside component from travelsData)
 
 // (Map styles removed — using CartoDB Dark Matter via MapLibre)
 
@@ -156,7 +151,7 @@ function StructuredFields({ fields, agentColor }) {
 }
 
 // ─── Floating Card (Walk View) ───
-function FloatingCard({ wp, index, total, activeAgentId, agentOrder, onAgentChange, onPrev, onNext, onDotSelect, isMobile }) {
+function FloatingCard({ wp, index, total, activeAgentId, agentOrder, agents, onAgentChange, onPrev, onNext, onDotSelect, isMobile }) {
   const availableAgents = wp.agentIds.filter(id => {
     const p = wp.perspectives[id];
     return p && Object.keys(p).some(k => k !== 'waypointId' && k !== 'subtitle' && p[k] != null);
@@ -315,7 +310,7 @@ function FloatingCard({ wp, index, total, activeAgentId, agentOrder, onAgentChan
 }
 
 // ─── City Info Panel (for map selection) ───
-function CityPanel({ travel, onStart, onClose, isMobile }) {
+function CityPanel({ travel, agents, onStart, onClose, isMobile }) {
   const meta = travel.meta;
 
   return (
@@ -440,13 +435,31 @@ function CityPanel({ travel, onStart, onClose, isMobile }) {
 
 // ─── Main Page ───
 export default function Home() {
-  const [selectedTravel, setSelectedTravel] = useState(null); // index into travels[]
+  const [travelsData, setTravelsData] = useState([]);
+  const [agentsData, setAgentsData] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const [selectedTravel, setSelectedTravel] = useState(null); // index into travelsData[]
   const [activeIndex, setActiveIndex] = useState(-1); // -1 = panel view, 0+ = walking
   const [activeAgentId, setActiveAgentId] = useState(null);
   const [panelTravel, setPanelTravel] = useState(null); // travel shown in side panel
   const isMobile = useIsMobile();
 
-  const currentTravel = selectedTravel !== null ? travels[selectedTravel] : null;
+  useEffect(() => {
+    getTravels().then(({ travels, agents }) => {
+      setTravelsData(travels);
+      setAgentsData(agents);
+      setLoading(false);
+    });
+  }, []);
+
+  const globalStats = {
+    walks: travelsData.length,
+    cities: new Set(travelsData.map(t => t.meta.location.city)).size,
+    walkers: new Set(travelsData.flatMap(t => t.agentOrder)).size,
+  };
+
+  const currentTravel = selectedTravel !== null ? travelsData[selectedTravel] : null;
   const waypoints = currentTravel?.waypoints || [];
   const agentOrder = currentTravel?.agentOrder || [];
   const travel = currentTravel?.meta;
@@ -483,6 +496,15 @@ export default function Home() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [activeIndex, selectedTravel, panelTravel, goNext, goPrev, agentOrder]);
+
+  // ─── Loading State ───
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#c9a961', fontFamily: "'JetBrains Mono', monospace" }}>Loading walks...</div>
+      </div>
+    );
+  }
 
   // ─── Walking View ───
   if (selectedTravel !== null && activeIndex >= 0) {
@@ -542,7 +564,7 @@ export default function Home() {
           overflowY: 'auto', WebkitOverflowScrolling: 'touch',
         }}>
           <FloatingCard wp={wp} index={activeIndex} total={waypoints.length}
-            activeAgentId={activeAgentId} agentOrder={agentOrder}
+            activeAgentId={activeAgentId} agentOrder={agentOrder} agents={agentsData}
             onAgentChange={setActiveAgentId} onPrev={goPrev} onNext={goNext}
             onDotSelect={setActiveIndex} isMobile={isMobile} />
         </div>
@@ -601,8 +623,8 @@ export default function Home() {
       {/* Full-screen world map (MapLibre + OSM — free, no API key) */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <LandingMap
-          travels={travels}
-          agents={agents}
+          travels={travelsData}
+          agents={agentsData}
           onSelectTravel={(i) => setPanelTravel(i)}
           selectedTravel={panelTravel}
           isMobile={isMobile}
@@ -683,11 +705,12 @@ export default function Home() {
       {/* City info panel (side panel on desktop, bottom sheet on mobile) */}
       {panelTravel !== null && (
         <CityPanel
-          travel={travels[panelTravel]}
+          travel={travelsData[panelTravel]}
+          agents={agentsData}
           isMobile={isMobile}
           onStart={() => {
             setSelectedTravel(panelTravel);
-            setActiveAgentId(travels[panelTravel].agentOrder[0]);
+            setActiveAgentId(travelsData[panelTravel].agentOrder[0]);
             setActiveIndex(0);
           }}
           onClose={() => {
