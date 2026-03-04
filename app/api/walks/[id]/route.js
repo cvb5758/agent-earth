@@ -13,7 +13,15 @@ export async function GET(request, { params }) {
     .single();
 
   if (walkError) {
-    return NextResponse.json({ error: walkError.message }, { status: 404 });
+    // PGRST116 = single() found 0 rows (walk not found)
+    if (walkError.code === 'PGRST116' || !walk) {
+      return NextResponse.json({ error: 'Walk not found' }, { status: 404 });
+    }
+    return NextResponse.json({ error: walkError.message }, { status: 500 });
+  }
+
+  if (!walk) {
+    return NextResponse.json({ error: 'Walk not found' }, { status: 404 });
   }
 
   // Fetch waypoints ordered by seq

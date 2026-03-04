@@ -1,3 +1,5 @@
+> ⚠️ Superseded by plan-db-api.md — DB migration approach adopted instead.
+
 # Plan: #5 + #6 동적 로딩 + 클로디 산책 3건 통합
 
 ## 두 이슈를 한 PR로 처리하는 이유

@@ -9,7 +9,10 @@ let _agents = null;
 
 export async function getAgents() {
   if (_agents) return _agents;
-  const { data } = await supabase.from('agents').select('*');
+  const { data, error } = await supabase.from('agents').select('*');
+  if (error) {
+    console.error('[getAgents] Supabase error:', error.message);
+  }
   _agents = {};
   for (const a of data || []) {
     _agents[a.id] = a;
@@ -17,25 +20,26 @@ export async function getAgents() {
   return _agents;
 }
 
-// ─── All travels — fetch and build ───
+// ─── All travels — single nested query (no N+1) ───
 export async function getTravels() {
   const agents = await getAgents();
 
-  const { data: walks } = await supabase
+  // Single query: fetch walks with their waypoints inline
+  const { data: walks, error: walksError } = await supabase
     .from('walks')
-    .select('*')
+    .select('*, waypoints(*)')
     .order('created_at', { ascending: false });
 
-  const travels = [];
+  if (walksError) {
+    console.error('[getTravels] Supabase error fetching walks:', walksError.message);
+    return { travels: [], agents };
+  }
 
-  for (const walk of walks || []) {
-    const { data: wps } = await supabase
-      .from('waypoints')
-      .select('*')
-      .eq('walk_id', walk.id)
-      .order('seq');
+  const travels = (walks || []).map((walk) => {
+    // Sort waypoints by seq (nested select doesn't guarantee order)
+    const wps = (walk.waypoints || []).slice().sort((a, b) => a.seq - b.seq);
 
-    const waypoints = (wps || []).map((wp) => ({
+    const waypoints = wps.map((wp) => ({
       id: wp.seq,
       lat: wp.lat,
       lng: wp.lng,
@@ -47,7 +51,8 @@ export async function getTravels() {
       perspectives: {
         [walk.agent_id]: {
           waypointId: wp.seq,
-          subtitle: wp.subtitle,
+          // subtitle omitted: column not yet in DB schema
+          // (add via migration: ALTER TABLE waypoints ADD COLUMN subtitle TEXT)
           comment: wp.comment,
           see: wp.see,
           know: wp.know,
@@ -58,7 +63,7 @@ export async function getTravels() {
       agentIds: [walk.agent_id],
     }));
 
-    travels.push({
+    return {
       meta: {
         id: walk.id,
         title: walk.title,
@@ -77,8 +82,8 @@ export async function getTravels() {
       },
       waypoints,
       agentOrder: [walk.agent_id],
-    });
-  }
+    };
+  });
 
   return { travels, agents };
 }

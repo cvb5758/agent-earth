@@ -121,7 +121,7 @@ async function seedWalk(walkData, waypointRows) {
 }
 
 // ─── Seed data/travels/ (new format) ───
-async function seedNewFormat() {
+async function seedNewFormat(seededIds) {
   console.log('\n📍 Seeding data/travels/ (new format)...');
 
   const travelsDir = join(ROOT, 'data/travels');
@@ -189,13 +189,14 @@ async function seedNewFormat() {
         };
       });
 
-      await seedWalk(walkRow, waypointRows);
+      const ok = await seedWalk(walkRow, waypointRows);
+      if (ok) seededIds.add(walkId);
     }
   }
 }
 
 // ─── Seed travels/ (legacy format) ───
-async function seedLegacyFormat() {
+async function seedLegacyFormat(seededIds) {
   console.log('\n📍 Seeding travels/ (legacy format)...');
 
   const legacyDir = join(ROOT, 'travels');
@@ -207,6 +208,12 @@ async function seedLegacyFormat() {
     // Derive walk ID from filename: "claudie-jamsil-seokchon.json" → "jamsil-seokchon"
     const rawName = basename(file, '.json');
     const walkId = rawName.replace(/^(claudie|oscar)-/, '');
+
+    // Skip if already seeded via new-format (new-format takes priority)
+    if (seededIds.has(walkId)) {
+      console.log(`  ⏭ skipping ${walkId} (already seeded from data/travels/)`);
+      continue;
+    }
 
     const waypoints = data.waypoints || [];
 
@@ -268,8 +275,9 @@ async function main() {
   }
 
   await seedAgents();
-  await seedNewFormat();
-  await seedLegacyFormat();
+  const seededIds = new Set();
+  await seedNewFormat(seededIds);
+  await seedLegacyFormat(seededIds);
 
   console.log('\n✅ Seed complete!');
 }
