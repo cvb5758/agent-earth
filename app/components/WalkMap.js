@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 let maplibregl = null;
 
-export default function WalkMap({ waypoints, activeIndex, center, onWaypointClick }) {
+export default function WalkMap({ waypoints, activeIndex, center, onWaypointClick, isMobile = false }) {
   const mapContainer = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
@@ -76,8 +76,15 @@ export default function WalkMap({ waypoints, activeIndex, center, onWaypointClic
     const wp = waypoints[activeIndex];
     if (!wp) return;
 
+    // Offset center so waypoint appears in visible area above the card
+    // Mobile: card covers ~60% bottom, so shift waypoint to top 30%
+    // Desktop: card is bottom-left, shift waypoint to upper area
+    const bounds = map.getBounds();
+    const latRange = bounds.getNorth() - bounds.getSouth();
+    const latOffset = isMobile ? latRange * 0.25 : latRange * 0.15;
+
     map.flyTo({
-      center: [wp.lng, wp.lat],
+      center: [wp.lng, wp.lat + latOffset],
       zoom: activeIndex >= 10 ? 16 : 17,
       duration: 800,
     });

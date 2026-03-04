@@ -496,6 +496,7 @@ export default function Home() {
             activeIndex={activeIndex}
             center={travel.location.center}
             onWaypointClick={(i) => setActiveIndex(i)}
+            isMobile={isMobile}
           />
         </div>
 
