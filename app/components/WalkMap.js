@@ -60,6 +60,17 @@ export default function WalkMap({ waypoints, activeIndex, center, onWaypointClic
     map.on('load', () => {
       drawRoute(map);
       addMarkers(map);
+
+      // Initial position: fly to active waypoint with padding
+      const wp = waypoints[activeIndex];
+      if (wp) {
+        const h = map.getContainer().clientHeight;
+        const w = map.getContainer().clientWidth;
+        const padding = isMobile
+          ? { top: 60, bottom: Math.round(h * 0.65), left: 20, right: 20 }
+          : { top: 40, bottom: Math.round(h * 0.35), left: Math.round(w * 0.3), right: 40 };
+        map.flyTo({ center: [wp.lng, wp.lat], zoom: 17, duration: 500, padding });
+      }
     });
 
     return () => {
@@ -76,17 +87,20 @@ export default function WalkMap({ waypoints, activeIndex, center, onWaypointClic
     const wp = waypoints[activeIndex];
     if (!wp) return;
 
-    // Offset center so waypoint appears in visible area above the card
-    // Mobile: card covers ~60% bottom, so shift waypoint to top 30%
-    // Desktop: card is bottom-left, shift waypoint to upper area
-    const bounds = map.getBounds();
-    const latRange = bounds.getNorth() - bounds.getSouth();
-    const latOffset = isMobile ? latRange * 0.25 : latRange * 0.15;
+    // Use padding to push the effective center above the card overlay
+    // Mobile: card covers ~60% of bottom → pad bottom 65%
+    // Desktop: card is bottom-left → pad bottom 40%, left 30%
+    const h = map.getContainer().clientHeight;
+    const w = map.getContainer().clientWidth;
+    const padding = isMobile
+      ? { top: 60, bottom: Math.round(h * 0.65), left: 20, right: 20 }
+      : { top: 40, bottom: Math.round(h * 0.35), left: Math.round(w * 0.3), right: 40 };
 
     map.flyTo({
-      center: [wp.lng, wp.lat + latOffset],
+      center: [wp.lng, wp.lat],
       zoom: activeIndex >= 10 ? 16 : 17,
       duration: 800,
+      padding,
     });
 
     // Update walked polyline
