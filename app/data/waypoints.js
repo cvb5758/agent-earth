@@ -1,67 +1,94 @@
-// Agent Earth — Dynamic data loader
-// Reads from data/ directory structure for multi-agent, multi-travel extensibility
+// Agent Earth — Supabase data loader
+// Fetches walks and waypoints from DB instead of hardcoded JSON imports.
+// Original JSON files are kept in data/ and travels/ for reference.
 
-import alfamaMeta from '../../data/travels/alfama-lisbon/meta.json';
-import alfamaOscar from '../../data/travels/alfama-lisbon/oscar.json';
-import alfamaClaudie from '../../data/travels/alfama-lisbon/claudie.json';
+import { supabase } from '../../lib/supabase';
 
-import kyotoMeta from '../../data/travels/higashiyama-kyoto/meta.json';
-import kyotoOscar from '../../data/travels/higashiyama-kyoto/oscar.json';
+// ─── Agent profiles — fetch once ───
+let _agents = null;
 
-import shimokitaMeta from '../../data/travels/shimokitazawa-tokyo/meta.json';
-import shimokitaClaudie from '../../data/travels/shimokitazawa-tokyo/claudie.json';
-
-import oscarProfile from '../../data/agents/oscar.json';
-import claudieProfile from '../../data/agents/claudie.json';
-
-// ─── Agent Registry ───
-export const agents = {
-  [oscarProfile.id]: oscarProfile,
-  [claudieProfile.id]: claudieProfile,
-};
-
-// ─── Build perspective index: { waypointId -> agentId -> perspective } ───
-function buildPerspectives(agentDataList) {
-  const index = {};
-  for (const agentData of agentDataList) {
-    for (const p of agentData.perspectives) {
-      if (!index[p.waypointId]) index[p.waypointId] = {};
-      index[p.waypointId][agentData.agentId] = p;
-    }
+export async function getAgents() {
+  if (_agents) return _agents;
+  const { data, error } = await supabase.from('agents').select('*');
+  if (error) {
+    console.error('[getAgents] Supabase error:', error.message);
   }
-  return index;
+  _agents = {};
+  for (const a of data || []) {
+    _agents[a.id] = a;
+  }
+  return _agents;
 }
 
-// ─── Build a complete travel object ───
-function buildTravel(meta, agentDataList) {
-  const perspectiveIndex = buildPerspectives(agentDataList);
-  const travelAgentIds = [...new Set(agentDataList.map(d => d.agentId))];
+// ─── All travels — single nested query (no N+1) ───
+export async function getTravels() {
+  const agents = await getAgents();
 
-  const waypoints = meta.waypoints.map((wp) => {
-    const wpPerspectives = perspectiveIndex[wp.id] || {};
+  // Single query: fetch walks with their waypoints inline
+  const { data: walks, error: walksError } = await supabase
+    .from('walks')
+    .select('*, waypoints(*)')
+    .order('created_at', { ascending: false });
+
+  if (walksError) {
+    console.error('[getTravels] Supabase error fetching walks:', walksError.message);
+    return { travels: [], agents };
+  }
+
+  const travels = (walks || []).map((walk) => {
+    // Sort waypoints by seq (nested select doesn't guarantee order)
+    const wps = (walk.waypoints || []).slice().sort((a, b) => a.seq - b.seq);
+
+    const waypoints = wps.map((wp) => ({
+      id: wp.seq,
+      lat: wp.lat,
+      lng: wp.lng,
+      heading: wp.heading || 0,
+      pitch: wp.pitch || 0,
+      title: wp.title,
+      hasStreetView: wp.has_street_view,
+      localImage: wp.image_url,
+      perspectives: {
+        [walk.agent_id]: {
+          waypointId: wp.seq,
+          // subtitle omitted: column not yet in DB schema
+          // (add via migration: ALTER TABLE waypoints ADD COLUMN subtitle TEXT)
+          comment: wp.comment,
+          see: wp.see,
+          know: wp.know,
+          never: wp.never,
+          dataPoint: wp.data_point,
+        },
+      },
+      agentIds: [walk.agent_id],
+    }));
+
     return {
-      ...wp,
-      hasStreetView: wp.hasStreetView !== false,
-      perspectives: wpPerspectives,
-      agentIds: Object.keys(wpPerspectives),
+      meta: {
+        id: walk.id,
+        title: walk.title,
+        subtitle: walk.subtitle,
+        description: walk.description,
+        location: {
+          city: walk.city?.split(',')[0]?.trim() || walk.city,
+          district: walk.title,
+          country: walk.country || walk.city?.split(',')[1]?.trim() || '',
+          center: { lat: walk.center_lat, lng: walk.center_lng },
+        },
+        stats: {
+          distance: walk.distance || '~2km',
+          timeSpan: walk.time_span || 'today',
+        },
+      },
+      waypoints,
+      agentOrder: [walk.agent_id],
     };
   });
 
-  return {
-    meta,
-    waypoints,
-    agentOrder: travelAgentIds,
-  };
+  return { travels, agents };
 }
 
-// ─── All travels ───
-export const travels = [
-  buildTravel(shimokitaMeta, [shimokitaClaudie]),
-  buildTravel(kyotoMeta, [kyotoOscar]),
-  buildTravel(alfamaMeta, [alfamaOscar, alfamaClaudie]),
-];
-
-// ─── Backward-compatible exports (default to first travel) ───
-export const travel = travels[0].meta;
-export const waypoints = travels[0].waypoints;
-export const agentOrder = travels[0].agentOrder;
+// ─── Backward-compatible sync exports (empty until loaded) ───
+// Use getTravels() async function instead.
+export const agents = {};
+export const travels = [];
