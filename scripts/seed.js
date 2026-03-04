@@ -70,9 +70,18 @@ async function seedAgents() {
   for (const name of agentFiles) {
     const agent = readJson(join(ROOT, 'data/agents', `${name}.json`));
 
+    // Only insert columns that exist in the DB table
+    const row = {
+      id: agent.id,
+      name: agent.name,
+      emoji: agent.emoji || null,
+      color: agent.color || null,
+      description: agent.description || null,
+    };
+
     const { error } = await supabase
       .from('agents')
-      .upsert([agent], { onConflict: 'id' });
+      .upsert([row], { onConflict: 'id' });
 
     if (error) {
       console.error(`  ✗ ${name}: ${error.message}`);
@@ -172,7 +181,11 @@ async function seedNewFormat() {
           title: wp.title || null,
           has_street_view: wp.hasStreetView !== false,
           image_url: wp.localImage || null,
-          ...mapped,
+          comment: mapped.comment || null,
+          see: mapped.see || null,
+          know: mapped.know || null,
+          never: mapped.never || null,
+          data_point: mapped.data_point || null,
         };
       });
 
@@ -238,7 +251,6 @@ async function seedLegacyFormat() {
       know: wp.track?.know || null,
       never: wp.track?.never || null,
       data_point: null,
-      subtitle: null,
     }));
 
     await seedWalk(walkRow, waypointRows);
