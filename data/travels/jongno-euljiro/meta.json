@@ -1,0 +1,126 @@
+{
+  "id": "jongno-euljiro",
+  "title": "시간의 단층면",
+  "subtitle": "종로에서 을지로까지, 600년 도시를 걷다",
+  "description": "광화문의 축선에서 시작해 피맛골의 골목 문법, 익선동의 한옥 리노베이션, 세운상가의 수직 산업, 을지로 철공소와 노가리골목까지. 같은 도시 안에서 조선·일제·산업화·젠트리피케이션이 2km 안에 공존한다.",
+  "location": {
+    "city": "Seoul",
+    "district": "Jongno-Euljiro",
+    "country": "South Korea",
+    "center": { "lat": 37.5700, "lng": 126.9880 }
+  },
+  "stats": {
+    "distance": "2.8km",
+    "timeSpan": "2026-03-05"
+  },
+  "waypoints": [
+    {
+      "id": 1,
+      "lat": 37.5759,
+      "lng": 126.9769,
+      "heading": 0,
+      "pitch": 5,
+      "title": "광화문 광장",
+      "hasStreetView": true
+    },
+    {
+      "id": 2,
+      "lat": 37.5713,
+      "lng": 126.9830,
+      "heading": 90,
+      "pitch": 0,
+      "title": "보신각 — 종로의 기준점",
+      "hasStreetView": true
+    },
+    {
+      "id": 3,
+      "lat": 37.5717,
+      "lng": 126.9873,
+      "heading": 180,
+      "pitch": 0,
+      "title": "피맛골 흔적",
+      "hasStreetView": true
+    },
+    {
+      "id": 4,
+      "lat": 37.5727,
+      "lng": 126.9887,
+      "heading": 45,
+      "pitch": 0,
+      "title": "익선동 한옥 골목",
+      "hasStreetView": true
+    },
+    {
+      "id": 5,
+      "lat": 37.5720,
+      "lng": 126.9910,
+      "heading": 270,
+      "pitch": 0,
+      "title": "돈화문로 — 창덕궁 축선",
+      "hasStreetView": true
+    },
+    {
+      "id": 6,
+      "lat": 37.5710,
+      "lng": 126.9920,
+      "heading": 135,
+      "pitch": 0,
+      "title": "종묘 담장길",
+      "hasStreetView": true
+    },
+    {
+      "id": 7,
+      "lat": 37.5690,
+      "lng": 126.9910,
+      "heading": 180,
+      "pitch": 10,
+      "title": "세운상가 — 공중보행로",
+      "hasStreetView": true
+    },
+    {
+      "id": 8,
+      "lat": 37.5672,
+      "lng": 126.9915,
+      "heading": 90,
+      "pitch": 0,
+      "title": "청계천 세운교",
+      "hasStreetView": true
+    },
+    {
+      "id": 9,
+      "lat": 37.5660,
+      "lng": 126.9920,
+      "heading": 180,
+      "pitch": 0,
+      "title": "을지로3가 철공소 골목",
+      "hasStreetView": true
+    },
+    {
+      "id": 10,
+      "lat": 37.5658,
+      "lng": 126.9893,
+      "heading": 270,
+      "pitch": 0,
+      "title": "노가리골목",
+      "hasStreetView": true
+    },
+    {
+      "id": 11,
+      "lat": 37.5648,
+      "lng": 126.9870,
+      "heading": 180,
+      "pitch": 0,
+      "title": "을지로 인쇄골목",
+      "hasStreetView": true
+    },
+    {
+      "id": 12,
+      "lat": 37.5670,
+      "lng": 126.9960,
+      "heading": 90,
+      "pitch": 0,
+      "title": "방산시장 — 산업의 끝자락",
+      "hasStreetView": true
+    }
+  ]
+}
