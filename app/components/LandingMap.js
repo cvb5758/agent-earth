@@ -140,9 +140,21 @@ export default function LandingMap({ travels, agents, onSelectTravel, selectedTr
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
+    // Prevent overlapping city bubbles (e.g., multiple Tokyo walks)
+    const cityCounts = {};
+
     travels.forEach((t, i) => {
       const meta = t.meta;
       const walkerEmojis = t.agentOrder.map(id => agents[id]?.emoji || '').join('');
+      const cityKey = (meta.location.city || 'unknown').toLowerCase();
+      cityCounts[cityKey] = (cityCounts[cityKey] || 0) + 1;
+      const cityIndex = cityCounts[cityKey] - 1;
+
+      // Small radial jitter so markers in same city don't sit on top of each other
+      const radius = 0.08; // ~8-9km visual separation on overview map
+      const angle = cityIndex * (Math.PI / 3);
+      const markerLat = meta.location.center.lat + (cityIndex === 0 ? 0 : radius * Math.sin(angle));
+      const markerLng = meta.location.center.lng + (cityIndex === 0 ? 0 : radius * Math.cos(angle));
 
       const el = document.createElement('div');
       el.className = 'city-cluster-marker';
@@ -162,7 +174,7 @@ export default function LandingMap({ travels, agents, onSelectTravel, selectedTr
       });
 
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-        .setLngLat([meta.location.center.lng, meta.location.center.lat])
+        .setLngLat([markerLng, markerLat])
         .addTo(map);
 
       markersRef.current.push(marker);
